@@ -140,10 +140,49 @@
   }
   .love-btn:hover { background: #111; color: #f3f0e8; }
   .love-btn:active { transform: scale(0.94); }
+
+  .jump-btn {
+    position: fixed;
+    top: 20px; left: 20px;
+    z-index: 200;
+    font: 600 14px/1 "Helvetica Neue", Arial, sans-serif;
+    color: #111;
+    background: #f3f0e8;
+    border: 1.5px solid #111;
+    border-radius: 999px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .jump-btn:hover { background: #111; color: #f3f0e8; }
+  .jump-btn:active { transform: scale(0.94); }
+
+  /* One-by-one bounce: each letter leaps, decaying until it settles. */
+  @keyframes jump {
+    0%   { transform: translateY(0);      animation-timing-function: ease-out; }
+    12%  { transform: translateY(-110%);  animation-timing-function: ease-in;  }
+    24%  { transform: translateY(0);      animation-timing-function: ease-out; }
+    36%  { transform: translateY(-60%);   animation-timing-function: ease-in;  }
+    46%  { transform: translateY(0);      animation-timing-function: ease-out; }
+    56%  { transform: translateY(-34%);   animation-timing-function: ease-in;  }
+    64%  { transform: translateY(0);      animation-timing-function: ease-out; }
+    72%  { transform: translateY(-19%);   animation-timing-function: ease-in;  }
+    78%  { transform: translateY(0);      animation-timing-function: ease-out; }
+    85%  { transform: translateY(-10%);   animation-timing-function: ease-in;  }
+    90%  { transform: translateY(0);      animation-timing-function: ease-out; }
+    100% { transform: translateY(0); }
+  }
+  .word.jump .tile { animation: jump 1s both; will-change: transform; }
+  .word.jump .tile:nth-child(1) { animation-delay: 0s; }
+  .word.jump .tile:nth-child(2) { animation-delay: 0.22s; }
+  .word.jump .tile:nth-child(3) { animation-delay: 0.44s; }
+  .word.jump .tile:nth-child(4) { animation-delay: 0.66s; }
+  .word.jump .tile:nth-child(5) { animation-delay: 0.88s; }
 </style>
 </head>
 <body>
   <button class="love-btn" id="loveBtn" title="Flip">♥</button>
+  <button class="jump-btn" id="jumpBtn" title="Make them jump">make them jump</button>
   <div class="scene">
     <div class="flipper" id="flipper">
       <div class="boxface front">
@@ -188,6 +227,24 @@
     });
     flipper.addEventListener('animationend', function () {
       flipper.classList.remove('flip'); // reset so it can replay
+    });
+
+    // Make the letters jump one by one, decaying to a settle.
+    const jumpBtn = document.getElementById('jumpBtn');
+    const tiles = word.querySelectorAll('.tile');
+    let jumpTimer = null;
+    function makeThemJump() {
+      // restart cleanly so it can be re-triggered
+      word.classList.remove('jump');
+      void word.offsetWidth; // force reflow
+      word.classList.add('jump');
+      clearTimeout(jumpTimer);
+      // last tile starts at 0.88s, animation is 1s -> settle ~1.88s
+      jumpTimer = setTimeout(function () { word.classList.remove('jump'); }, 2000);
+    }
+    jumpBtn.addEventListener('click', function (e) {
+      e.stopPropagation(); // don't also trigger the flip
+      makeThemJump();
     });
   })();
   </script>
