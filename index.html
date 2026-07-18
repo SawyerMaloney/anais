@@ -12,6 +12,7 @@
     --bw: 60vw;                       /* measured by JS */
     --bh: var(--s);                   /* measured by JS */
     --gap: calc(var(--s) * 0.08);     /* spacing in the name cross */
+    --zs: 0.5;                        /* zoom scale for the cross (sized by JS to fit) */
   }
   html, body { height: 100%; margin: 0; }
   body {
@@ -228,16 +229,16 @@
   }
 
   /* Cross arms around the shared D at center. --dw/--dh/--anais-w set by JS. */
-  .anim-d      { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.5s; }
-  .anim-colin  { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(calc(var(--dw) / 2 + var(--gap)), -50%); opacity: 0; transition: opacity 0.5s; }
+  .anim-d      { font-size: calc(var(--s) * var(--zs)); line-height: 1; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.5s; }
+  .anim-colin  { font-size: calc(var(--s) * var(--zs)); line-height: 1; transform: translate(calc(var(--dw) / 2 + var(--gap)), -50%); opacity: 0; transition: opacity 0.5s; }
   /* Vertical letters stack around the shared D: --k is the line index
      (R=-1 just above D, S=-6 at top; M=+1 just below D, Y=+7 at bottom). */
-  .v-letter    { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(-50%, calc(var(--k) * var(--dh) - 50%)); opacity: 0; transition: opacity 0.4s; transition-delay: var(--d, 0s); }
-  .anim-heart  { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(-50%, -50%) scale(1); opacity: 0; transition: opacity 0.4s; }
+  .v-letter    { font-size: calc(var(--s) * var(--zs)); line-height: 1; transform: translate(-50%, calc(var(--k) * var(--dh) - 50%)); opacity: 0; transition: opacity 0.4s; transition-delay: var(--d, 0s); }
+  .anim-heart  { font-size: calc(var(--s) * var(--zs)); line-height: 1; transform: translate(-50%, -50%) scale(1); opacity: 0; transition: opacity 0.4s; }
 
   /* Phases are cumulative; later rules win by source order. */
   .p1 .anim-anais-wrap { transform: translate(calc(-50% - var(--anais-w) / 2 - var(--gap) - var(--dw) / 2), -50%); }
-  .p1 .anim-anais      { transform: scale(0.5); }
+  .p1 .anim-anais      { transform: scale(var(--zs)); }
   .p1 .anim-d, .p1 .anim-colin { opacity: 1; }
 
   .p2 .v-letter { opacity: 1; }
@@ -357,6 +358,15 @@
     const stage = document.getElementById('animStage');
     const heart = overlay.querySelector('.anim-heart');
     function measureAnim() {
+      // Resolve var(--s) to px with a throwaway probe.
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:absolute;left:0;top:0;visibility:hidden;width:var(--s);height:0';
+      overlay.appendChild(probe);
+      const sPx = probe.getBoundingClientRect().width;
+      probe.remove();
+      // Zoom the cross so the 13-line vertical stack fits within ~90% of the viewport height.
+      const zs = Math.min(0.5, (window.innerHeight * 0.9) / (13 * sPx));
+      stage.style.setProperty('--zs', zs);
       const d = overlay.querySelector('.anim-d');
       const anais = overlay.querySelector('.anim-anais');
       const dr = d.getBoundingClientRect();
