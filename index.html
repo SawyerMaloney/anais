@@ -55,7 +55,10 @@
     margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
     transform: translateZ(calc(var(--d) / 2));
     display: flex; align-items: center; justify-content: center;
-    transform-style: preserve-3d;
+    /* flat: the whole face composites as one plane so it hides cleanly
+       (backface-visibility) when the box flips, instead of the letter
+       faces bleeding through. The per-letter flip still has 3D depth via
+       .word's perspective + .card's preserve-3d. */
   }
   .boxface.back {
     width: var(--bw); height: var(--bh);
@@ -67,7 +70,10 @@
     color: #111;
     white-space: nowrap;
   }
-  .boxface.edge { background: linear-gradient(#ece5d4, #d7cfbd); }
+  .boxface.edge { background: linear-gradient(#ece5d4, #d7cfbd); opacity: 0; transition: opacity 0.3s; }
+  /* Edges only visible while the box is actually rotating — at rest the
+     box reads as a flat card, so the bottom edge doesn't look weird. */
+  .flipper.flip .boxface.edge { opacity: 1; }
   .boxface.top    { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(90deg)  translateZ(calc(var(--bh) / 2)); }
   .boxface.bottom { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(-90deg) translateZ(calc(var(--bh) / 2)); }
   .boxface.left   { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2)); }
