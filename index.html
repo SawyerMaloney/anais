@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Anaïs</title>
 <style>
-  :root { --s: clamp(80px, 18vw, 220px); }
+  /* --s capped by viewport height so the word always fits vertically */
+  :root {
+    --s: min(clamp(70px, 16vw, 200px), 24vh);
+    --d: clamp(30px, 5.5vw, 64px);   /* box depth (thickness) */
+    --bw: 60vw;                       /* measured by JS */
+    --bh: var(--s);                   /* measured by JS */
+  }
   html, body { height: 100%; margin: 0; }
   body {
     background: #f3f0e8; /* eggshell */
@@ -18,10 +24,12 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* 3D flip around the horizontal (X) axis */
-  .scene { perspective: 1400px; }
+  /* 3D box that rotates about the horizontal (X) axis */
+  .scene { perspective: 1600px; perspective-origin: 50% 50%; }
   .flipper {
     position: relative;
+    width: var(--bw);
+    height: var(--bh);
     transform-style: preserve-3d;
   }
   .flipper.flip {
@@ -34,22 +42,38 @@
     100% { transform: rotateX(360deg); }
   }
 
-  .layer {
+  /* All faces are centered in the box, then translated/rotated into place */
+  .face {
+    position: absolute;
+    top: 50%; left: 50%;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
-  .layer.back {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: rotateX(180deg);
-    font-size: clamp(44px, 10vw, 120px);
+
+  .face.front {
+    width: var(--bw); height: var(--bh);
+    margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
+    transform: translateZ(calc(var(--d) / 2));
+    display: flex; align-items: center; justify-content: center;
+    transform-style: preserve-3d;
+  }
+  .face.back {
+    width: var(--bw); height: var(--bh);
+    margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
+    transform: rotateX(180deg) translateZ(calc(var(--d) / 2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(34px, 8.5vw, 104px);
     font-weight: 900;
     color: #111;
     white-space: nowrap;
   }
+
+  /* Edge faces = the box's thickness, visible mid-rotation */
+  .face.edge { background: linear-gradient(#ece5d4, #d7cfbd); }
+  .face.top    { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(90deg)  translateZ(calc(var(--bh) / 2)); }
+  .face.bottom { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(-90deg) translateZ(calc(var(--bh) / 2)); }
+  .face.left   { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2)); }
+  .face.right  { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(90deg)  translateZ(calc(var(--bw) / 2)); }
 
   .word {
     display: flex;
@@ -70,7 +94,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 1em;
+    height: 1.12em;
     font-size: var(--s);
     font-weight: 900;
     line-height: 1;
@@ -80,23 +104,23 @@
   }
   .tile:hover .card { transform: rotateY(180deg); }
 
-  .face {
+  .face.front .face { /* letter faces inside the front of the box */
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
-  .front {
+  .front-letter {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 1em;
+    height: 1.12em;
   }
-  .back {
+  .back-photo {
     position: absolute;
     inset: 0;
     transform: rotateY(180deg);
     overflow: hidden;
   }
-  .back img {
+  .back-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -124,22 +148,37 @@
   <button class="love-btn" id="loveBtn" title="Flip">♥</button>
   <div class="scene">
     <div class="flipper" id="flipper">
-      <div class="layer front">
+      <div class="face front">
         <div class="word">
-          <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">N</div><div class="face back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">Ï</div><div class="face back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">S</div><div class="face back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front-letter">A</div><div class="face back-photo"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front-letter">N</div><div class="face back-photo"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front-letter">A</div><div class="face back-photo"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front-letter">Ï</div><div class="face back-photo"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front-letter">S</div><div class="face back-photo"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
         </div>
       </div>
-      <div class="layer back">I love you</div>
+      <div class="face back">I love you</div>
+      <div class="face edge top"></div>
+      <div class="face edge bottom"></div>
+      <div class="face edge left"></div>
+      <div class="face edge right"></div>
     </div>
   </div>
   <script>
   (function () {
     const btn = document.getElementById('loveBtn');
     const flipper = document.getElementById('flipper');
+    const word = document.querySelector('.word');
+
+    // Size the box to the measured word so all faces match exactly.
+    function sizeBox() {
+      const r = word.getBoundingClientRect();
+      flipper.style.setProperty('--bw', r.width + 'px');
+      flipper.style.setProperty('--bh', r.height + 'px');
+    }
+    window.addEventListener('resize', sizeBox);
+    sizeBox();
+
     btn.addEventListener('click', function () {
       if (flipper.classList.contains('flip')) return; // ignore mid-animation
       flipper.classList.add('flip');
