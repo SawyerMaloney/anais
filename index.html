@@ -11,6 +11,7 @@
     --d: clamp(12px, 2.2vw, 26px);   /* box depth (thin slab) */
     --bw: 60vw;                       /* measured by JS */
     --bh: var(--s);                   /* measured by JS */
+    --gap: calc(var(--s) * 0.08);     /* spacing in the name cross */
   }
   html, body { height: 100%; margin: 0; }
   body {
@@ -75,6 +76,7 @@
     gap: 0.02em;
     perspective: 1200px;
     user-select: none;
+    transition: opacity 0.25s;
   }
 
   /* Stable, non-rotating hit box. Sizes to the card it wraps.
@@ -178,6 +180,79 @@
   .word.jump .tile:nth-child(3) { animation-delay: 0.2s; }
   .word.jump .tile:nth-child(4) { animation-delay: 0.3s; }
   .word.jump .tile:nth-child(5) { animation-delay: 0.4s; }
+
+  /* ---- Name cross animation ---- */
+  .names-btn {
+    position: fixed;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    font: 600 14px/1 "Helvetica Neue", Arial, sans-serif;
+    color: #111;
+    background: #f3f0e8;
+    border: 1.5px solid #111;
+    border-radius: 999px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .names-btn:hover { background: #111; color: #f3f0e8; }
+  .names-btn:active { transform: translateX(-50%) scale(0.94); }
+
+  .anim-overlay {
+    position: fixed; inset: 0; z-index: 150;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .anim-overlay.active { opacity: 1; }
+  .anim-stage { position: relative; width: 0; height: 0; }
+  .anim-stage > * {
+    position: absolute; left: 0; top: 0;
+    white-space: nowrap; font-weight: 900; color: #111;
+  }
+
+  /* ANAÏS: starts centered at full size (matching the real word), then
+     zooms out to the left of the shared D. Scaling uses a right-side
+     transform-origin so it shrinks toward the D. */
+  .anim-anais-wrap {
+    transform: translate(-50%, -50%);
+    transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .anim-anais {
+    display: inline-block;
+    font-size: var(--s);
+    transform: scale(1);
+    transform-origin: right center;
+    transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Cross arms around the shared D at center. --dw/--dh/--anais-w set by JS. */
+  .anim-d      { font-size: calc(var(--s) * 0.5); transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.5s; }
+  .anim-colin  { font-size: calc(var(--s) * 0.5); transform: translate(calc(var(--dw) / 2 + var(--gap)), -50%); opacity: 0; transition: opacity 0.5s; }
+  .anim-sawyer { font-size: calc(var(--s) * 0.5); transform: translate(-50%, calc(-100% - var(--dh) / 2 - var(--gap))); opacity: 0; transition: opacity 0.5s; }
+  .anim-maloney{ font-size: calc(var(--s) * 0.5); transform: translate(-50%, calc(var(--dh) / 2 + var(--gap))); opacity: 0; transition: opacity 0.5s; }
+  .anim-heart  { font-size: calc(var(--s) * 0.5); transform: translate(-50%, -50%) scale(1); opacity: 0; transition: opacity 0.4s; }
+
+  /* Phases are cumulative; later rules win by source order. */
+  .p1 .anim-anais-wrap { transform: translate(calc(-50% - var(--anais-w) / 2 - var(--gap) - var(--dw) / 2), -50%); }
+  .p1 .anim-anais      { transform: scale(0.5); }
+  .p1 .anim-d, .p1 .anim-colin { opacity: 1; }
+
+  .p2 .anim-sawyer, .p2 .anim-maloney { opacity: 1; }
+
+  .p3 .anim-d     { opacity: 0; }
+  .p3 .anim-heart { opacity: 1; }
+
+  .p4 .anim-anais-wrap { transform: translate(-50%, -50%); }
+  .p4 .anim-anais      { transform: scale(1); }
+  .p4 .anim-heart, .p4 .anim-colin, .p4 .anim-sawyer, .p4 .anim-maloney { opacity: 0; }
+
+  @keyframes pulse {
+    from { transform: translate(-50%, -50%) scale(1); }
+    to   { transform: translate(-50%, -50%) scale(1.4); }
+  }
+  .anim-heart.pulse { animation: pulse 0.5s ease-in-out infinite alternate; }
 </style>
 </head>
 <body>
@@ -197,11 +272,23 @@
       <div class="boxface back">I love you</div>
     </div>
   </div>
+  <button class="names-btn" id="namesBtn" title="Play name animation">❤</button>
+  <div class="anim-overlay" id="animOverlay">
+    <div class="anim-stage" id="animStage">
+      <div class="anim-sawyer">SAWYER</div>
+      <div class="anim-anais-wrap"><span class="anim-anais">ANAÏS</span></div>
+      <div class="anim-d">D</div>
+      <div class="anim-colin">COLIN</div>
+      <div class="anim-maloney">MALONEY</div>
+      <div class="anim-heart">♥</div>
+    </div>
+  </div>
   <script>
   (function () {
     const btn = document.getElementById('loveBtn');
     const flipper = document.getElementById('flipper');
     const word = document.querySelector('.word');
+    let animRunning = false;
 
     // Size the box to the measured word so all faces match exactly.
     function sizeBox() {
@@ -214,6 +301,7 @@
 
     // Trigger the flip (button, any click, or spacebar).
     function flip() {
+      if (animRunning) return;
       if (flipper.classList.contains('flip')) return; // ignore mid-animation
       flipper.classList.add('flip');
     }
@@ -234,6 +322,7 @@
     let jumpTimer = null;
     let jumping = false;
     function makeThemJump() {
+      if (animRunning) return;
       if (jumping) return; // let the current bounce settle first
       jumping = true;
       word.classList.add('jump');
@@ -247,6 +336,54 @@
     jumpBtn.addEventListener('click', function (e) {
       e.stopPropagation(); // don't also trigger the flip
       makeThemJump();
+    });
+
+    // ---- Name cross animation ----
+    const namesBtn = document.getElementById('namesBtn');
+    const overlay = document.getElementById('animOverlay');
+    const stage = document.getElementById('animStage');
+    const heart = overlay.querySelector('.anim-heart');
+    function measureAnim() {
+      const d = overlay.querySelector('.anim-d');
+      const anais = overlay.querySelector('.anim-anais');
+      const dr = d.getBoundingClientRect();
+      const ar = anais.getBoundingClientRect();
+      stage.style.setProperty('--dw', dr.width + 'px');
+      stage.style.setProperty('--dh', dr.height + 'px');
+      stage.style.setProperty('--anais-w', ar.width + 'px');
+    }
+    window.addEventListener('resize', measureAnim);
+    window.addEventListener('load', measureAnim);
+    measureAnim();
+
+    const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+    async function playNames() {
+      if (animRunning) return;
+      animRunning = true;
+      word.style.opacity = '0';        // hide real ANAÏS; overlay copy stands in
+      overlay.classList.add('active');
+      await sleep(250);
+      overlay.classList.add('p1');     // zoom out + D COLIN fade in
+      await sleep(1000);
+      overlay.classList.add('p2');     // SAWYER / MALONEY fade in (cross)
+      await sleep(800);
+      await sleep(1000);               // hold a second
+      overlay.classList.add('p3');     // D -> heart
+      await sleep(450);
+      heart.classList.add('pulse');    // heart pulses larger
+      await sleep(1300);
+      overlay.classList.add('p4');     // others fade out, ANAÏS zooms back
+      heart.classList.remove('pulse');
+      await sleep(1000);
+      overlay.classList.remove('active');
+      word.style.opacity = '';         // restore real ANAÏS
+      await sleep(250);
+      overlay.classList.remove('p1', 'p2', 'p3', 'p4');
+      animRunning = false;
+    }
+    namesBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      playNames();
     });
   })();
   </script>
