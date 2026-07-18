@@ -12,7 +12,7 @@
     --bw: 60vw;                       /* measured by JS */
     --bh: var(--s);                   /* measured by JS */
     --gap: calc(var(--s) * 0.08);     /* spacing in the name cross */
-    --zs: 0.5;                        /* zoom scale for the cross (sized by JS to fit) */
+    --zs: 0.4;                        /* zoom scale for the cross (sized by JS to fit) */
   }
   html, body { height: 100%; margin: 0; }
   body {
@@ -365,7 +365,7 @@
       const sPx = probe.getBoundingClientRect().width;
       probe.remove();
       // Zoom the cross so the 13-line vertical stack fits within ~90% of the viewport height.
-      const zs = Math.min(0.5, (window.innerHeight * 0.9) / (13 * sPx));
+      const zs = Math.min(0.4, (window.innerHeight * 0.9) / (13 * sPx));
       stage.style.setProperty('--zs', zs);
       const d = overlay.querySelector('.anim-d');
       const anais = overlay.querySelector('.anim-anais');
