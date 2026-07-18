@@ -186,9 +186,18 @@
     window.addEventListener('resize', sizeBox);
     sizeBox();
 
-    btn.addEventListener('click', function () {
+    // Trigger the flip (button, any click, or spacebar).
+    function flip() {
       if (flipper.classList.contains('flip')) return; // ignore mid-animation
       flipper.classList.add('flip');
+    }
+    btn.addEventListener('click', function (e) { e.stopPropagation(); flip(); });
+    document.addEventListener('click', flip);
+    document.addEventListener('keydown', function (e) {
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        flip();
+      }
     });
     flipper.addEventListener('animationend', function () {
       flipper.classList.remove('flip'); // reset so it can replay
