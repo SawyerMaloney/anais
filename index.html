@@ -228,25 +228,27 @@
   }
 
   /* Cross arms around the shared D at center. --dw/--dh/--anais-w set by JS. */
-  .anim-d      { font-size: calc(var(--s) * 0.5); transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.5s; }
-  .anim-colin  { font-size: calc(var(--s) * 0.5); transform: translate(calc(var(--dw) / 2 + var(--gap)), -50%); opacity: 0; transition: opacity 0.5s; }
-  .anim-sawyer { font-size: calc(var(--s) * 0.5); transform: translate(-50%, calc(-100% - var(--dh) / 2 - var(--gap))); opacity: 0; transition: opacity 0.5s; }
-  .anim-maloney{ font-size: calc(var(--s) * 0.5); transform: translate(-50%, calc(var(--dh) / 2 + var(--gap))); opacity: 0; transition: opacity 0.5s; }
-  .anim-heart  { font-size: calc(var(--s) * 0.5); transform: translate(-50%, -50%) scale(1); opacity: 0; transition: opacity 0.4s; }
+  .anim-d      { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.5s; }
+  .anim-colin  { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(calc(var(--dw) / 2 + var(--gap)), -50%); opacity: 0; transition: opacity 0.5s; }
+  /* Vertical letters stack around the shared D: --k is the line index
+     (R=-1 just above D, S=-6 at top; M=+1 just below D, Y=+7 at bottom). */
+  .v-letter    { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(-50%, calc(var(--k) * var(--dh) - 50%)); opacity: 0; transition: opacity 0.4s; transition-delay: var(--d, 0s); }
+  .anim-heart  { font-size: calc(var(--s) * 0.5); line-height: 1; transform: translate(-50%, -50%) scale(1); opacity: 0; transition: opacity 0.4s; }
 
   /* Phases are cumulative; later rules win by source order. */
   .p1 .anim-anais-wrap { transform: translate(calc(-50% - var(--anais-w) / 2 - var(--gap) - var(--dw) / 2), -50%); }
   .p1 .anim-anais      { transform: scale(0.5); }
   .p1 .anim-d, .p1 .anim-colin { opacity: 1; }
 
-  .p2 .anim-sawyer, .p2 .anim-maloney { opacity: 1; }
+  .p2 .v-letter { opacity: 1; }
 
   .p3 .anim-d     { opacity: 0; }
   .p3 .anim-heart { opacity: 1; }
 
   .p4 .anim-anais-wrap { transform: translate(-50%, -50%); }
   .p4 .anim-anais      { transform: scale(1); }
-  .p4 .anim-heart, .p4 .anim-colin, .p4 .anim-sawyer, .p4 .anim-maloney { opacity: 0; }
+  .p4 .anim-heart, .p4 .anim-colin, .p4 .v-letter { opacity: 0; }
+  .p4 .v-letter { transition-delay: 0s; }
 
   @keyframes pulse {
     from { transform: translate(-50%, -50%) scale(1); }
@@ -275,11 +277,22 @@
   <button class="names-btn" id="namesBtn" title="Play name animation">❤</button>
   <div class="anim-overlay" id="animOverlay">
     <div class="anim-stage" id="animStage">
-      <div class="anim-sawyer">SAWYER</div>
       <div class="anim-anais-wrap"><span class="anim-anais">ANAÏS</span></div>
+      <div class="v-letter" style="--k:-6;--d:0.36s">S</div>
+      <div class="v-letter" style="--k:-5;--d:0.30s">A</div>
+      <div class="v-letter" style="--k:-4;--d:0.24s">W</div>
+      <div class="v-letter" style="--k:-3;--d:0.18s">Y</div>
+      <div class="v-letter" style="--k:-2;--d:0.12s">E</div>
+      <div class="v-letter" style="--k:-1;--d:0.06s">R</div>
       <div class="anim-d">D</div>
       <div class="anim-colin">COLIN</div>
-      <div class="anim-maloney">MALONEY</div>
+      <div class="v-letter" style="--k:1;--d:0.06s">M</div>
+      <div class="v-letter" style="--k:2;--d:0.12s">A</div>
+      <div class="v-letter" style="--k:3;--d:0.18s">L</div>
+      <div class="v-letter" style="--k:4;--d:0.24s">O</div>
+      <div class="v-letter" style="--k:5;--d:0.30s">N</div>
+      <div class="v-letter" style="--k:6;--d:0.36s">E</div>
+      <div class="v-letter" style="--k:7;--d:0.42s">Y</div>
       <div class="anim-heart">♥</div>
     </div>
   </div>
