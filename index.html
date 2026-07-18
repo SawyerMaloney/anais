@@ -8,7 +8,7 @@
   /* --s capped by viewport height so the word always fits vertically */
   :root {
     --s: min(clamp(70px, 16vw, 200px), 24vh);
-    --d: clamp(30px, 5.5vw, 64px);   /* box depth (thickness) */
+    --d: clamp(12px, 2.2vw, 26px);   /* box depth (thin slab) */
     --bw: 60vw;                       /* measured by JS */
     --bh: var(--s);                   /* measured by JS */
   }
@@ -70,7 +70,7 @@
     color: #111;
     white-space: nowrap;
   }
-  .boxface.edge { background: linear-gradient(#ece5d4, #d7cfbd); opacity: 0; transition: opacity 0.3s; }
+  .boxface.edge { background: #d4cdba; opacity: 0; transition: opacity 0.3s; }
   /* Edges only visible while the box is actually rotating — at rest the
      box reads as a flat card, so the bottom edge doesn't look weird. */
   .flipper.flip .boxface.edge { opacity: 1; }
