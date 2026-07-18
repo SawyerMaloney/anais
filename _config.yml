@@ -1,0 +1,20 @@
+title: Anais
+description: A little corner of the internet.
+url: "" # fill in after deploy, e.g. https://sawyer.maloney.github.io/anais
+baseurl: "/anais" # change to "" if using a username.github.io repo
+
+# Build settings
+theme: minima
+markdown: kramdown
+
+# Social (optional — uncomment and fill in)
+# author:
+#   name: Anais
+
+# Exclude build artifacts
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .git
