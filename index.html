@@ -70,15 +70,6 @@
     color: #111;
     white-space: nowrap;
   }
-  .boxface.edge { background: #d4cdba; opacity: 0; transition: opacity 0.3s; }
-  /* Edges only visible while the box is actually rotating — at rest the
-     box reads as a flat card, so the bottom edge doesn't look weird. */
-  .flipper.flip .boxface.edge { opacity: 1; }
-  .boxface.top    { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(90deg)  translateZ(calc(var(--bh) / 2)); }
-  .boxface.bottom { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(-90deg) translateZ(calc(var(--bh) / 2)); }
-  .boxface.left   { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2)); }
-  .boxface.right  { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(90deg)  translateZ(calc(var(--bw) / 2)); }
-
   .word {
     display: flex;
     gap: 0.02em;
@@ -165,10 +156,6 @@
         </div>
       </div>
       <div class="boxface back">I love you</div>
-      <div class="boxface edge top"></div>
-      <div class="boxface edge bottom"></div>
-      <div class="boxface edge left"></div>
-      <div class="boxface edge right"></div>
     </div>
   </div>
   <script>
