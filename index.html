@@ -102,24 +102,26 @@
   }
   .tile:hover .card { transform: rotateY(180deg); }
 
-  /* Per-letter faces (original layout — NOT absolutely centered) */
+  /* Per-letter faces (original layout — NOT absolutely centered).
+     Prefixed .l-front/.l-back so they don't collide with the box's
+     .boxface.front / .boxface.back faces. */
   .face {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
-  .front {
+  .l-front {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     height: 1.12em;
   }
-  .back {
+  .l-back {
     position: absolute;
     inset: 0;
     transform: rotateY(180deg);
     overflow: hidden;
   }
-  .back img {
+  .l-back img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -149,11 +151,11 @@
     <div class="flipper" id="flipper">
       <div class="boxface front">
         <div class="word">
-          <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">N</div><div class="face back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">Ï</div><div class="face back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front">S</div><div class="face back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face l-front">A</div><div class="face l-back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face l-front">N</div><div class="face l-back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face l-front">A</div><div class="face l-back"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face l-front">Ï</div><div class="face l-back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face l-front">S</div><div class="face l-back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
         </div>
       </div>
       <div class="boxface back">I love you</div>
