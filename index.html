@@ -231,16 +231,18 @@
 
     // Make the letters jump one by one, decaying to a settle.
     const jumpBtn = document.getElementById('jumpBtn');
-    const tiles = word.querySelectorAll('.tile');
     let jumpTimer = null;
+    let jumping = false;
     function makeThemJump() {
-      // restart cleanly so it can be re-triggered
-      word.classList.remove('jump');
-      void word.offsetWidth; // force reflow
+      if (jumping) return; // let the current bounce settle first
+      jumping = true;
       word.classList.add('jump');
       clearTimeout(jumpTimer);
       // last tile starts at 0.4s, animation is 1s -> settle ~1.4s
-      jumpTimer = setTimeout(function () { word.classList.remove('jump'); }, 1500);
+      jumpTimer = setTimeout(function () {
+        word.classList.remove('jump');
+        jumping = false; // re-arm
+      }, 1500);
     }
     jumpBtn.addEventListener('click', function (e) {
       e.stopPropagation(); // don't also trigger the flip
