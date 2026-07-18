@@ -9,27 +9,34 @@
   html, body { height: 100%; margin: 0; }
   body {
     background: #f3f0e8; /* eggshell */
-    display: flex;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
     overflow: hidden;
     font-family: "Helvetica Neue", "Arial Black", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Initial centered layout — measured by JS before going absolute */
   .word {
     display: flex;
     gap: 0.02em;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
     perspective: 1200px;
     user-select: none;
   }
-
-  /* Stable, non-rotating hit box. Sizes to the card it wraps.
-     Carries the :hover so the flip target never changes mid-rotation. */
   .tile {
     position: relative;
     display: inline-flex;
+    cursor: grab;
+    touch-action: none;
   }
+
+  /* Physics mode: full-screen absolute container */
+  .physics .word { position: fixed; inset: 0; display: block; min-height: 0; }
+  .physics .tile { position: absolute; will-change: transform; }
+
+  .tile.dragging { cursor: grabbing; z-index: 100; }
 
   .card {
     position: relative;
@@ -49,6 +56,7 @@
   .face {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    pointer-events: none;
   }
   .front {
     display: inline-flex;
@@ -68,15 +76,199 @@
     object-fit: cover;
     display: block;
   }
+
+  .gravity-btn {
+    position: fixed;
+    top: 20px; right: 20px;
+    z-index: 200;
+    font: 600 14px/1 "Helvetica Neue", Arial, sans-serif;
+    color: #111;
+    background: #f3f0e8;
+    border: 1.5px solid #111;
+    border-radius: 999px;
+    padding: 10px 18px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, color 0.2s;
+  }
+  .gravity-btn:hover { background: #111; color: #f3f0e8; }
+  .gravity-btn.on { background: #111; color: #f3f0e8; }
+
+  .hint {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 200;
+    font: 400 12px/1.4 "Helvetica Neue", Arial, sans-serif;
+    color: #666;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0.8;
+  }
 </style>
 </head>
 <body>
-  <div class="word">
+  <button class="gravity-btn" id="gravityBtn">Gravity: Off</button>
+  <div class="word" id="word">
     <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
     <div class="tile"><div class="card"><div class="face front">N</div><div class="face back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
     <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
     <div class="tile"><div class="card"><div class="face front">Ï</div><div class="face back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
     <div class="tile"><div class="card"><div class="face front">S</div><div class="face back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
   </div>
+  <div class="hint" id="hint">Drag letters · Scroll to rotate · Turn on gravity to drop them</div>
+  <script>
+  (function () {
+    const word = document.getElementById('word');
+    const btn = document.getElementById('gravityBtn');
+    const hint = document.getElementById('hint');
+    const tiles = Array.from(word.querySelectorAll('.tile'));
+
+    // Tunables
+    const G = 2400;        // gravity, px/s^2
+    const REST = 0.55;     // bounce restitution
+    const THROW_MAX = 3000;
+
+    let gravity = false;
+    const letters = [];
+
+    function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+    function apply(s) {
+      s.el.style.transform = 'translate(' + s.x + 'px,' + s.y + 'px) rotate(' + s.rot + 'deg)';
+    }
+
+    function init() {
+      // Measure the centered flex layout first, then switch to absolute.
+      const rects = tiles.map(function (t) { return t.getBoundingClientRect(); });
+      document.body.classList.add('physics');
+      tiles.forEach(function (tile, i) {
+        const r = rects[i];
+        const s = {
+          el: tile,
+          x: r.left, y: r.top, w: r.width, h: r.height,
+          vx: 0, vy: 0, rot: 0, drag: null
+        };
+        letters.push(s);
+        apply(s);
+        attachDrag(s);
+        attachWheel(s);
+      });
+    }
+
+    // ---- Drag (works in both modes; throws only when gravity is on) ----
+    function attachDrag(s) {
+      s.el.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        s.el.setPointerCapture(e.pointerId);
+        s.el.classList.add('dragging');
+        s.drag = {
+          ox: e.clientX - s.x, oy: e.clientY - s.y,
+          t: performance.now(), vx: 0, vy: 0
+        };
+      });
+      s.el.addEventListener('pointermove', function (e) {
+        if (!s.drag) return;
+        const now = performance.now();
+        const dt = Math.max(0.008, (now - s.drag.t) / 1000);
+        const nx = e.clientX - s.drag.ox;
+        const ny = e.clientY - s.drag.oy;
+        s.drag.vx = (nx - s.x) / dt;
+        s.drag.vy = (ny - s.y) / dt;
+        s.x = nx; s.y = ny;
+        s.drag.t = now;
+        apply(s);
+      });
+      const end = function () {
+        if (!s.drag) return;
+        s.el.classList.remove('dragging');
+        if (gravity) {
+          s.vx = clamp(s.drag.vx, -THROW_MAX, THROW_MAX);
+          s.vy = clamp(s.drag.vy, -THROW_MAX, THROW_MAX);
+        } else {
+          s.vx = 0; s.vy = 0;
+        }
+        s.drag = null;
+      };
+      s.el.addEventListener('pointerup', end);
+      s.el.addEventListener('pointercancel', end);
+    }
+
+    // ---- Scroll-to-rotate (gravity off only) ----
+    function attachWheel(s) {
+      s.el.addEventListener('wheel', function (e) {
+        if (gravity) return;
+        e.preventDefault();
+        s.rot += e.deltaY * 0.15;
+        apply(s);
+      }, { passive: false });
+    }
+
+    // ---- Physics loop ----
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(0.032, (now - last) / 1000);
+      last = now;
+      if (gravity) {
+        const vw = window.innerWidth, vh = window.innerHeight;
+        for (const s of letters) {
+          if (s.drag) continue;
+          s.vy += G * dt;
+          s.x += s.vx * dt;
+          s.y += s.vy * dt;
+          if (s.y + s.h > vh) { s.y = vh - s.h; s.vy = -s.vy * REST; s.vx *= 0.9; if (Math.abs(s.vy) < 45) s.vy = 0; }
+          if (s.x < 0) { s.x = 0; s.vx = -s.vx * REST; }
+          if (s.x + s.w > vw) { s.x = vw - s.w; s.vx = -s.vx * REST; }
+          if (s.y + s.h >= vh - 0.5 && Math.abs(s.vy) < 5 && Math.abs(s.vx) < 5) { s.vx = 0; s.vy = 0; }
+          apply(s);
+        }
+        for (let i = 0; i < letters.length; i++)
+          for (let j = i + 1; j < letters.length; j++)
+            resolve(letters[i], letters[j]);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    // AABB letter-letter collision
+    function resolve(a, b) {
+      if (a.drag && b.drag) return;
+      const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+      const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+      if (ox <= 0 || oy <= 0) return;
+      if (ox < oy) {
+        const p = ox / 2;
+        if (a.x < b.x) { a.x -= p; b.x += p; } else { a.x += p; b.x -= p; }
+        if (!a.drag) a.vx = -a.vx * REST * 0.5;
+        if (!b.drag) b.vx = -b.vx * REST * 0.5;
+      } else {
+        const p = oy / 2;
+        if (a.y < b.y) { a.y -= p; b.y += p; } else { a.y += p; b.y -= p; }
+        if (!a.drag) a.vy = -a.vy * REST * 0.5;
+        if (!b.drag) b.vy = -b.vy * REST * 0.5;
+      }
+      apply(a); apply(b);
+    }
+
+    // ---- Gravity toggle ----
+    btn.addEventListener('click', function () {
+      gravity = !gravity;
+      btn.textContent = 'Gravity: ' + (gravity ? 'On' : 'Off');
+      btn.classList.toggle('on', gravity);
+      hint.style.display = gravity ? 'none' : '';
+      if (!gravity) for (const s of letters) { s.vx = 0; s.vy = 0; }
+    });
+
+    window.addEventListener('resize', function () {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      for (const s of letters) {
+        if (s.x + s.w > vw) s.x = vw - s.w;
+        if (s.y + s.h > vh) s.y = vh - s.h;
+        if (s.x < 0) s.x = 0;
+        apply(s);
+      }
+    });
+
+    init();
+    requestAnimationFrame(frame);
+  })();
+  </script>
 </body>
 </html>
