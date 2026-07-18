@@ -327,8 +327,8 @@
         flip();
       }
     });
-    flipper.addEventListener('animationend', function () {
-      flipper.classList.remove('flip'); // reset so it can replay
+    flipper.addEventListener('animationend', function (e) {
+      if (e.target === flipper) flipper.classList.remove('flip'); // only the flip's own end
     });
 
     // Make the letters jump one by one, decaying to a settle.
