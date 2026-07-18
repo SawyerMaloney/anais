@@ -23,6 +23,14 @@
     perspective: 1200px;
     user-select: none;
   }
+
+  /* Stable, non-rotating hit box. Sizes to the card it wraps.
+     Carries the :hover so the flip target never changes mid-rotation. */
+  .tile {
+    position: relative;
+    display: inline-flex;
+  }
+
   .card {
     position: relative;
     display: inline-flex;
@@ -36,7 +44,7 @@
     transform-style: preserve-3d;
     transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .card:hover { transform: rotateY(180deg); }
+  .tile:hover .card { transform: rotateY(180deg); }
 
   .face {
     backface-visibility: hidden;
@@ -64,11 +72,11 @@
 </head>
 <body>
   <div class="word">
-    <div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div>
-    <div class="card"><div class="face front">N</div><div class="face back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div>
-    <div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/IMG_1003.png" alt=""></div></div>
-    <div class="card"><div class="face front">Ï</div><div class="face back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div>
-    <div class="card"><div class="face front">S</div><div class="face back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div>
+    <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
+    <div class="tile"><div class="card"><div class="face front">N</div><div class="face back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
+    <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
+    <div class="tile"><div class="card"><div class="face front">Ï</div><div class="face back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
+    <div class="tile"><div class="card"><div class="face front">S</div><div class="face back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
   </div>
 </body>
 </html>
