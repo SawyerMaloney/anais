@@ -42,22 +42,22 @@
     100% { transform: rotateX(360deg); }
   }
 
-  /* All faces are centered in the box, then translated/rotated into place */
-  .face {
+  /* Box faces: centered in the box, then translated/rotated into place.
+     Scoped to .boxface so they don't affect the per-letter .face elements. */
+  .boxface {
     position: absolute;
     top: 50%; left: 50%;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
-
-  .face.front {
+  .boxface.front {
     width: var(--bw); height: var(--bh);
     margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
     transform: translateZ(calc(var(--d) / 2));
     display: flex; align-items: center; justify-content: center;
     transform-style: preserve-3d;
   }
-  .face.back {
+  .boxface.back {
     width: var(--bw); height: var(--bh);
     margin: calc(var(--bh) / -2) 0 0 calc(var(--bw) / -2);
     transform: rotateX(180deg) translateZ(calc(var(--d) / 2));
@@ -67,13 +67,11 @@
     color: #111;
     white-space: nowrap;
   }
-
-  /* Edge faces = the box's thickness, visible mid-rotation */
-  .face.edge { background: linear-gradient(#ece5d4, #d7cfbd); }
-  .face.top    { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(90deg)  translateZ(calc(var(--bh) / 2)); }
-  .face.bottom { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(-90deg) translateZ(calc(var(--bh) / 2)); }
-  .face.left   { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2)); }
-  .face.right  { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(90deg)  translateZ(calc(var(--bw) / 2)); }
+  .boxface.edge { background: linear-gradient(#ece5d4, #d7cfbd); }
+  .boxface.top    { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(90deg)  translateZ(calc(var(--bh) / 2)); }
+  .boxface.bottom { width: var(--bw); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--bw) / -2); transform: rotateX(-90deg) translateZ(calc(var(--bh) / 2)); }
+  .boxface.left   { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(-90deg) translateZ(calc(var(--bw) / 2)); }
+  .boxface.right  { width: var(--d); height: var(--bh); margin: calc(var(--bh) / -2) 0 0 calc(var(--d) / -2); transform: rotateY(90deg)  translateZ(calc(var(--bw) / 2)); }
 
   .word {
     display: flex;
@@ -104,23 +102,24 @@
   }
   .tile:hover .card { transform: rotateY(180deg); }
 
-  .face.front .face { /* letter faces inside the front of the box */
+  /* Per-letter faces (original layout — NOT absolutely centered) */
+  .face {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
-  .front-letter {
+  .front {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     height: 1.12em;
   }
-  .back-photo {
+  .back {
     position: absolute;
     inset: 0;
     transform: rotateY(180deg);
     overflow: hidden;
   }
-  .back-photo img {
+  .back img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -148,20 +147,20 @@
   <button class="love-btn" id="loveBtn" title="Flip">♥</button>
   <div class="scene">
     <div class="flipper" id="flipper">
-      <div class="face front">
+      <div class="boxface front">
         <div class="word">
-          <div class="tile"><div class="card"><div class="face front-letter">A</div><div class="face back-photo"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front-letter">N</div><div class="face back-photo"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front-letter">A</div><div class="face back-photo"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front-letter">Ï</div><div class="face back-photo"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
-          <div class="tile"><div class="card"><div class="face front-letter">S</div><div class="face back-photo"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/a0386b7b-b1ea-49ac-8f8c-810d2b04c556.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front">N</div><div class="face back"><img src="assets/images/IMG_0772.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front">A</div><div class="face back"><img src="assets/images/IMG_1003.png" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front">Ï</div><div class="face back"><img src="assets/images/IMG_5316.jpg" alt=""></div></div></div>
+          <div class="tile"><div class="card"><div class="face front">S</div><div class="face back"><img src="assets/images/IMG_6110.jpg" alt=""></div></div></div>
         </div>
       </div>
-      <div class="face back">I love you</div>
-      <div class="face edge top"></div>
-      <div class="face edge bottom"></div>
-      <div class="face edge left"></div>
-      <div class="face edge right"></div>
+      <div class="boxface back">I love you</div>
+      <div class="boxface edge top"></div>
+      <div class="boxface edge bottom"></div>
+      <div class="boxface edge left"></div>
+      <div class="boxface edge right"></div>
     </div>
   </div>
   <script>
